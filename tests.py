@@ -48,23 +48,25 @@ class TestBooksCollector:
         assert len(fantasy_books) == 1
 
     # Тест 6: Книги для детей (проверка с параметризацией)
-    @pytest.mark.parametrize('book_name, genre, expected', [
-        ('Гарри Поттер', 'Фантастика', True),    # разрешенный жанр
-        ('Оно', 'Ужасы', False),                  # запрещенный жанр
-        ('Ну погоди!', 'Мультфильмы', True),      # детский жанр
-        ('Десять негритят', 'Детективы', False),  # запрещенный жанр
-        ('Книга без жанра', '', False)            # пустой жанр
+    @pytest.mark.parametrize("book_name, genre", [
+        ("Гарри Поттер", "Фантастика"),
+        ("Ну, погоди!", "Мультфильмы")
     ])
-    def test_get_books_for_children_check_genre_restrictions(self, book_name, genre, expected):
+    def test_children_books_with_allowed_genres(self, book_name, genre):
         collector = BooksCollector()
-        
         collector.add_new_book(book_name)
-        
-        if genre:
-            collector.set_book_genre(book_name, genre)
-        
-        children_books = collector.get_books_for_children()
-        assert (book_name in children_books) == expected
+        collector.set_book_genre(book_name, genre)
+        assert book_name in collector.get_books_for_children()
+
+    @pytest.mark.parametrize("book_name, genre", [
+        ("Оно", "Ужасы"),
+        ("Шерлок Холмс", "Детективы")
+        ])
+    def test_adult_books_not_for_children(self, book_name, genre):
+        collector = BooksCollector()
+        collector.add_new_book(book_name)
+        collector.set_book_genre(book_name, genre)
+        assert book_name not in collector.get_books_for_children()
 
     # Тест 7: Добавление в избранное
     def test_add_to_favorites(self, collector_with_books):
@@ -82,6 +84,20 @@ class TestBooksCollector:
         collector_with_favorites.delete_book_from_favorites("Гарри Поттер")
         assert "Гарри Поттер" not in collector_with_favorites.get_list_of_favorites_books()
 
-    # Тест 10: Получение пустого списка избранного
-    def test_empty_favorites(self, new_collector):
-        assert new_collector.get_list_of_favorites_books() == []
+    # Тест 10: Проверка метода get_books_genre
+    def test_get_books_genre_method(self):
+        collector = BooksCollector()
+        assert collector.get_books_genre() == {}
+    
+    # Добавляем книгу и проверяем обновленный словарь
+        collector.add_new_book("Книга 1")
+        assert collector.get_books_genre() == {"Книга 1": ""}
+    
+    # Устанавливаем жанр и проверяем
+        collector.set_book_genre("Книга 1", "Фантастика")
+        assert collector.get_books_genre() == {"Книга 1": "Фантастика"}
+
+        # Тест 11: Получение пустого списка избранного
+    def test_empty_favorites(self):
+        collector = BooksCollector()
+        assert collector.get_list_of_favorites_books() == []
